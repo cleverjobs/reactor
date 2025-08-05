@@ -1,0 +1,44 @@
+name: CI
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+jobs:
+  # Frontend (Node) CI job
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+      - name: Install Dependencies
+        run: |
+          cd frontend
+          npm ci
+      - name: Build Next.js app
+        run: |
+          cd frontend
+          npm run build
+      # (Optional) - name: Run Frontend Tests
+      #           run: cd frontend && npm test
+
+  # Backend (Python) CI job
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install Dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+      - name: Run Backend Tests
+        run: |
+          cd backend
+          pytest -q

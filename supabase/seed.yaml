@@ -1,0 +1,12 @@
+services:
+  seed:
+    image: postgres:15-alpine        # Using Postgres image for the psql client
+    depends_on:
+      - supabase-db
+    env_file: supabase/.env
+    command: [
+      "psql", "-h", "db", "-U", "postgres", "-d", "${POSTGRES_DB}", "-f", "/docker-entrypoint-initdb.d/seed.sql"
+    ]
+    volumes:
+      - ./supabase/seed.sql:/docker-entrypoint-initdb.d/seed.sql:ro
+    # This container will run the seed SQL and exit

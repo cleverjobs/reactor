@@ -1,0 +1,84 @@
+services:
+  frontend:
+    build: ./frontend
+    container_name: myapp-frontend
+    ports:
+      - "3000:3000"
+    env_file: supabase/.env               # Use the same .env for consistent config
+    environment:
+      # Next.js expects these at build and runtime for connecting to Supabase
+      NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_PUBLIC_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}   # used server-side for SSR
+      SUPABASE_INTERNAL_HOST: supabase-kong            # internal address for supabase services
+    depends_on:
+      - supabase-db
+      - supabase-auth
+      - supabase-rest
+
+  backend:
+    build: ./backend
+    container_name: myapp-backend
+    ports:
+      - "8001:8000"
+    env_file: supabase/.env
+    environment:
+      # Supabase connection for Python
+      SUPABASE_URL: http://supabase-kong:8000
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+    depends_on:
+      - supabase-db
+
+  # ... (Supabase services definitions) ...
+
+  supabase-db:
+    image: supabase/postgres:15.8.1.060
+    container_name: supabase-db
+    ports:
+      - "5433:5433"
+    env_file: supabase/.env
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # Mount our SQL migration to initialize schema (runs on first startup)
+      - ./supabase/migrations/100-init.sql:/docker-entrypoint-initdb.d/migrations/100-init.sql:ro
+    # (healthcheck and other settings)
+
+  supabase-auth:
+    image: supabase/gotrue:v2.177.0
+    container_name: supabase-auth
+    env_file: supabase/.env
+    depends_on:
+      - supabase-db
+    # (listening on 9999 internally, no external port)
+  
+  supabase-rest:
+    image: postgrest/postgrest:v12.2.12
+    container_name: supabase-rest
+    env_file: supabase/.env
+    depends_on:
+      - supabase-db
+    # (listening on 3000 internally)
+
+  supabase-kong:
+    image: kong:2.8.1
+    container_name: supabase-kong
+    depends_on:
+      - supabase-auth
+      - supabase-rest
+      - supabase-realtime
+      - supabase-storage
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
+      # (Kong configuration is loaded via a template mounted below)
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
+    volumes:
+      - ./supabase/volumes/api/kong.yml:/home/kong/temp.yml:ro
+
+  # ... supabase-realtime, supabase-storage, supabase-studio, supabase-imgproxy, supabase-meta, supabase-analytics, supabase-vector ...
