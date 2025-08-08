@@ -1,0 +1,20 @@
+[tool.black]
+line-length = 100
+
+[tool.flake8]
+max-line-length = 100
+extend-ignore = ["E203", "W503"]
+
+[tool.poetry]
+name = "next-fastapi-template"
+version = "0.1.0"
+description = "Template"
+authors = ["Template <template@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.111.0"
+uvicorn = "^0.29.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.0.0"

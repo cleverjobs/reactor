@@ -1,5 +1,0 @@
-fastapi==0.110.0
-uvicorn[standard]==0.29.0
-supabase-py==2.4.3
-asyncpg==0.29.0        # fastest Postgres driver (optional, for direct SQL)
-python-dotenv==1.0.1   # load .env if needed

@@ -1,0 +1,24 @@
+{
+  "name": "next-fastapi-dev",
+  "image": "docker.io/you/next-fastapi-dev:1.0",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "../docker-compose.monitoring.yml",
+    "../docker-compose.cache.yml"
+  ],
+  "service": "web",
+  "workspaceFolder": "/workspace",
+  "runServices": ["web", "api", "db"],
+  "postCreateCommand": "./.devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-python.python",
+        "bradlc.vscode-tailwindcss"
+      ]
+    }
+  }
+}
